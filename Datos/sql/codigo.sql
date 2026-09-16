@@ -4,33 +4,34 @@ USE trello_db;
 -- 1. Tabla PROYECTO
 CREATE TABLE PROYECTO (
     id_proyecto INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_proyecto VARCHAR(100) NOT NULL,
-    descripcion TEXT,
-    fecha_creacion DATE NOT NULL DEFAULT (CURRENT_DATE)
+    codigo_proyecto VARCHAR(20) NOT NULL UNIQUE,
+    nombre VARCHAR(100) NOT NULL,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NULL
 ) ENGINE=InnoDB;
 
 -- 2. Tabla USUARIO
 CREATE TABLE USUARIO (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE
+    rol VARCHAR(50) NOT NULL
 ) ENGINE=InnoDB;
 
--- 3. Tabla PROYECTO_USUARIO (Relación N:M)
+-- 3. Tabla PROYECTO_USUARIO (Relación N:M — participación)
 CREATE TABLE PROYECTO_USUARIO (
     id_proyecto INT NOT NULL,
     id_usuario INT NOT NULL,
-    rol VARCHAR(50) NOT NULL,
     PRIMARY KEY (id_proyecto, id_usuario),
     CONSTRAINT fk_pu_proyecto FOREIGN KEY (id_proyecto) REFERENCES PROYECTO(id_proyecto) ON DELETE CASCADE,
     CONSTRAINT fk_pu_usuario FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- 4. Tabla TABLERO
+-- 4. Tabla TABLERO (relación 1–1 con PROYECTO, forzada con UNIQUE)
 CREATE TABLE TABLERO (
     id_tablero INT AUTO_INCREMENT PRIMARY KEY,
-    id_proyecto INT NOT NULL,
-    titulo VARCHAR(100) NOT NULL,
+    id_proyecto INT NOT NULL UNIQUE,
+    nombre VARCHAR(100) NOT NULL,
+    fecha_creacion DATE NOT NULL DEFAULT (CURRENT_DATE),
     CONSTRAINT fk_tablero_proyecto FOREIGN KEY (id_proyecto) REFERENCES PROYECTO(id_proyecto) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -38,8 +39,8 @@ CREATE TABLE TABLERO (
 CREATE TABLE LISTA (
     id_lista INT AUTO_INCREMENT PRIMARY KEY,
     id_tablero INT NOT NULL,
-    nombre_lista VARCHAR(100) NOT NULL,
-    posicion INT NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    orden INT NOT NULL,
     CONSTRAINT fk_lista_tablero FOREIGN KEY (id_tablero) REFERENCES TABLERO(id_tablero) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -50,7 +51,7 @@ CREATE TABLE TARJETA (
     titulo VARCHAR(150) NOT NULL,
     descripcion TEXT,
     fecha_limite DATE NULL,
-    estado VARCHAR(50) NULL,
+    estado VARCHAR(50) NOT NULL DEFAULT 'pendiente',
     CONSTRAINT fk_tarjeta_lista FOREIGN KEY (id_lista) REFERENCES LISTA(id_lista) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -60,7 +61,7 @@ CREATE TABLE COMENTARIO (
     id_tarjeta INT NOT NULL,
     id_usuario INT NOT NULL,
     texto TEXT NOT NULL,
-    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha DATE NOT NULL DEFAULT (CURRENT_DATE),
     CONSTRAINT fk_comentario_tarjeta FOREIGN KEY (id_tarjeta) REFERENCES TARJETA(id_tarjeta) ON DELETE CASCADE,
     CONSTRAINT fk_comentario_usuario FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -72,7 +73,7 @@ CREATE TABLE ETIQUETA (
     color VARCHAR(20) NOT NULL
 ) ENGINE=InnoDB;
 
--- 9. Tabla ASIGNACION_TARJETA (Relación N:M)
+-- 9. Tabla ASIGNACION_TARJETA (Relación N:M — responsables de la tarjeta)
 CREATE TABLE ASIGNACION_TARJETA (
     id_tarjeta INT NOT NULL,
     id_usuario INT NOT NULL,
