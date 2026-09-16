@@ -1,2 +1,2 @@
-# POO_TRELLO
-Gestión de Proyectos tipo Trello POO
+# Proyecto-TRELLO
+PROYECTO TRELLO
