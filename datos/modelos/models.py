@@ -1,5 +1,5 @@
 ﻿from peewee import *
-from Datos.conexion import conectar
+from datos.conexion import conectar
 
 
 Database = conectar()
