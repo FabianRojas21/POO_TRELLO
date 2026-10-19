@@ -3,7 +3,7 @@ datos/repositorios/repo_tarjeta.py
 Incluye las tablas intermedias de la tarjeta (usuarios asignados y etiquetas).
 """
 
-from datos.modelos.models import Tarjeta, AsignacionTarjeta, TarjetaEtiqueta
+from datos.modelos.models import Tarjeta, AsignacionTarjeta, TarjetaEtiqueta, Usuario, Etiqueta
 
 
 def guardar_tarjeta(tarjeta):
@@ -56,3 +56,17 @@ def quitar_etiqueta(tarjeta, etiqueta):
         (TarjetaEtiqueta.id_etiqueta == etiqueta)
     ).execute()
     return eliminados > 0
+
+
+def usuarios_de_tarjeta(tarjeta):
+    return list(
+        Usuario.select().join(AsignacionTarjeta)
+        .where(AsignacionTarjeta.id_tarjeta == tarjeta)
+    )
+
+
+def etiquetas_de_tarjeta(tarjeta):
+    return list(
+        Etiqueta.select().join(TarjetaEtiqueta)
+        .where(TarjetaEtiqueta.id_tarjeta == tarjeta)
+    )

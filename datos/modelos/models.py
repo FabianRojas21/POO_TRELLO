@@ -12,6 +12,7 @@ class BaseModel(Model):
         database = Database
 
 class Proyecto(BaseModel):
+    activo = BooleanField(default=True)
     codigo_proyecto = CharField(max_length=20, unique=True)
     fecha_fin = DateField(null=True)
     fecha_inicio = DateField()
@@ -31,6 +32,7 @@ class Tablero(BaseModel):
         table_name = 'TABLERO'
 
 class Lista(BaseModel):
+    activo = BooleanField(default=True)
     id_lista = AutoField()
     id_tablero = ForeignKeyField(column_name='id_tablero', field='id_tablero', model=Tablero, on_delete='CASCADE')
     nombre = CharField(max_length=100)
@@ -40,6 +42,7 @@ class Lista(BaseModel):
         table_name = 'LISTA'
 
 class Tarjeta(BaseModel):
+    activo = BooleanField(default=True)
     descripcion = TextField(null=True)
     estado = CharField(constraints=[SQL("DEFAULT 'pendiente'")], max_length=50)
     fecha_limite = DateField(null=True)

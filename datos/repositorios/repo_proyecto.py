@@ -3,7 +3,7 @@ datos/repositorios/repo_proyecto.py
 Acceso a la base de datos para Proyecto (CRUD + tablas asociadas).
 """
 
-from datos.modelos.models import Proyecto, ProyectoUsuario, Tablero, Lista, Tarjeta
+from datos.modelos.models import Proyecto, ProyectoUsuario, Tablero, Lista, Tarjeta, Usuario
 
 
 def guardar_proyecto(proyecto):
@@ -49,3 +49,10 @@ def contar_tarjetas(proyecto, estado=None):
     if estado is not None:
         consulta = consulta.where(Tarjeta.estado == estado)
     return consulta.count()
+
+
+def usuarios_de_proyecto(proyecto):
+    return list(
+        Usuario.select().join(ProyectoUsuario)
+        .where(ProyectoUsuario.id_proyecto == proyecto)
+    )

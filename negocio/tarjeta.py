@@ -96,3 +96,17 @@ def quitar_etiqueta(id_tarjeta, id_etiqueta):
 
 def agregar_comentario(id_tarjeta, id_usuario, texto):
     return crear_comentario(id_tarjeta, id_usuario, texto)
+
+
+def usuarios_de_tarjeta(id_tarjeta):
+    tarjeta = repo_tarjeta.obtener_tarjeta(id_tarjeta)
+    if tarjeta is None:
+        return None
+    return repo_tarjeta.usuarios_de_tarjeta(tarjeta)
+
+
+def etiquetas_de_tarjeta(id_tarjeta):
+    tarjeta = repo_tarjeta.obtener_tarjeta(id_tarjeta)
+    if tarjeta is None:
+        return None
+    return repo_tarjeta.etiquetas_de_tarjeta(tarjeta)

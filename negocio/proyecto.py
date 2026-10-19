@@ -77,3 +77,10 @@ def consultar_avance(codigo_proyecto):
         return 0.0
     completadas = repo_proyecto.contar_tarjetas(proyecto, estado='completada')
     return round(completadas / total * 100, 2)
+
+
+def usuarios_del_proyecto(codigo_proyecto):
+    proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
+    if proyecto is None:
+        return None
+    return repo_proyecto.usuarios_de_proyecto(proyecto)
