@@ -2,40 +2,40 @@
 negocio/comentario.py
 """
 
-from datos.modelos.models import Comentario, Tarjeta, Usuario
+from datos.modelos.models import Comentario
+from datos.repositorios import repo_comentario, repo_tarjeta, repo_usuario
 
 
 def crear_comentario(id_tarjeta, id_usuario, texto):
-    tarjeta = Tarjeta.get_or_none(Tarjeta.id_tarjeta == id_tarjeta)
-    usuario = Usuario.get_or_none(Usuario.id_usuario == id_usuario)
+    tarjeta = repo_tarjeta.obtener_tarjeta(id_tarjeta)
+    usuario = repo_usuario.obtener_usuario(id_usuario)
     if tarjeta is None or usuario is None:
         return None
-    return Comentario.create(id_tarjeta=tarjeta, id_usuario=usuario, texto=texto)
+    comentario = Comentario(id_tarjeta=tarjeta, id_usuario=usuario, texto=texto)
+    repo_comentario.guardar_comentario(comentario)
+    return comentario
 
 
 def obtener_comentario(id_comentario):
-    return Comentario.get_or_none(Comentario.id_comentario == id_comentario)
+    return repo_comentario.obtener_comentario(id_comentario)
 
 
-def listado_comentarios(id_tarjeta):
-    return list(
-        Comentario.select().where(Comentario.id_tarjeta == id_tarjeta).order_by(Comentario.fecha)
-    )
+def listado_comentarios(id_tarjeta=None):
+    return repo_comentario.listado_comentarios(id_tarjeta)
 
 
 def actualizar_comentario(id_comentario, **cambios):
-    comentario = obtener_comentario(id_comentario)
+    comentario = repo_comentario.obtener_comentario(id_comentario)
     if comentario is None:
         return None
     for campo, valor in cambios.items():
         setattr(comentario, campo, valor)
-    comentario.save()
+    repo_comentario.actualizar_comentario(comentario)
     return comentario
 
 
 def eliminar_comentario(id_comentario):
-    comentario = obtener_comentario(id_comentario)
+    comentario = repo_comentario.obtener_comentario(id_comentario)
     if comentario is None:
         return False
-    comentario.delete_instance()
-    return True
+    return repo_comentario.eliminar_comentario(comentario)

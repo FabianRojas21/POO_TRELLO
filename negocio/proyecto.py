@@ -1,89 +1,79 @@
-from datos.modelos.models import Proyecto, Tablero, Usuario, ProyectoUsuario, Lista, Tarjeta
+"""
+negocio/proyecto.py
+Reglas de negocio de Proyecto. El acceso a la base vive en datos/repositorios.
+"""
+
+from datos.modelos.models import Proyecto, Tablero
+from datos.repositorios import repo_proyecto, repo_tablero, repo_usuario
 
 
 def crear_proyecto(codigo_proyecto, nombre, fecha_inicio, fecha_fin=None, nombre_tablero=None):
-
-    database = Proyecto._meta.database
-    with database.atomic():
-        proyecto = Proyecto.create(
-            codigo_proyecto=codigo_proyecto,
-            nombre=nombre,
-            fecha_inicio=fecha_inicio,
-            fecha_fin=fecha_fin
-        )
-        Tablero.create(
-            id_proyecto=proyecto.id_proyecto,
-            nombre=nombre_tablero or f"tablero de {nombre}"
-
+    """El Proyecto se crea siempre junto con su Tablero (relación 1-1)."""
+    proyecto = Proyecto(
+        codigo_proyecto=codigo_proyecto,
+        nombre=nombre,
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
     )
+    with Proyecto._meta.database.atomic():
+        repo_proyecto.guardar_proyecto(proyecto)
+        tablero = Tablero(
+            id_proyecto=proyecto,
+            nombre=nombre_tablero or f"Tablero de {nombre}",
+        )
+        repo_tablero.guardar_tablero(tablero)
     return proyecto
 
+
 def obtener_proyecto(codigo_proyecto):
-    return Proyecto.get_or_none(Proyecto.codigo_proyecto == codigo_proyecto)
+    return repo_proyecto.obtener_proyecto(codigo_proyecto)
 
 
 def listado_proyectos():
-    return list(Proyecto.select())
+    return repo_proyecto.listado_proyectos()
 
 
 def actualizar_proyecto(codigo_proyecto, **cambios):
-
-    proyecto = obtener_proyecto(codigo_proyecto)
+    proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
     if proyecto is None:
         return None
     for campo, valor in cambios.items():
         setattr(proyecto, campo, valor)
-    proyecto.save()
+    repo_proyecto.actualizar_proyecto(proyecto)
     return proyecto
 
+
 def eliminar_proyecto(codigo_proyecto):
-    proyecto = obtener_proyecto(codigo_proyecto)
+    proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
     if proyecto is None:
         return False
-    proyecto.delete_instance()
-    return True
+    # La base cascadea (ON DELETE CASCADE) hacia tablero, listas, tarjetas, etc.
+    return repo_proyecto.eliminar_proyecto(proyecto)
 
 
 def agregar_usuario(codigo_proyecto, id_usuario):
-    proyecto = obtener_proyecto(codigo_proyecto)
-    usuario = Usuario.get_or_none(Usuario.id_usuario == id_usuario)
+    proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
+    usuario = repo_usuario.obtener_usuario(id_usuario)
     if proyecto is None or usuario is None:
         return False
-    ProyectoUsuario.get_or_create(id_Proyecto=proyecto, id_usuario=usuario)
-    return True
+    return repo_proyecto.agregar_usuario(proyecto, usuario)
+
 
 def remover_usuario(codigo_proyecto, id_usuario):
-    proyecto = obtener_proyecto(codigo_proyecto)
-    if proyecto is None:
+    proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
+    usuario = repo_usuario.obtener_usuario(id_usuario)
+    if proyecto is None or usuario is None:
         return False
-    eliminados = ProyectoUsuario.delete().where(
-        (ProyectoUsuario.id_proyecto == proyecto) &
-        (ProyectoUsuario.id_usuario == id_usuario)
-    ).execute()
-    return eliminados > 0
+    return repo_proyecto.remover_usuario(proyecto, usuario)
 
 
 def consultar_avance(codigo_proyecto):
-    proyecto = obtener_proyecto(codigo_proyecto)
+    """% de tarjetas en estado 'completada' sobre el total del proyecto."""
+    proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
     if proyecto is None:
         return None
-
-    total = (Tarjeta
-             .select()
-             .join(Lista)
-             .join(Tablero)
-             .where(Tablero.id_proyecto == proyecto)
-             .count())
-
+    total = repo_proyecto.contar_tarjetas(proyecto)
     if total == 0:
         return 0.0
-
-    completadas = (Tarjeta
-                   .select()
-                   .join(Lista)
-                   .join(Tablero)
-                   .where((Tablero.id_proyecto == proyecto) & (Tarjeta.estado == 'completada'))
-                   .count())
-
-
-    return round((completadas / total) * 100, 2)
+    completadas = repo_proyecto.contar_tarjetas(proyecto, estado='completada')
+    return round(completadas / total * 100, 2)
