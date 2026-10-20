@@ -1,14 +1,18 @@
 """
 negocio/tarjeta.py
+Borrado lógico: eliminar_tarjeta() la manda a la papelera; restaurar_tarjeta() la devuelve
+(si su lista está activa); purgar_tarjeta() la borra para siempre.
 """
 
 from datos.modelos.models import Tarjeta
-from datos.repositorios import repo_tarjeta, repo_usuario, repo_etiqueta
+from datos.repositorios import repo_tarjeta, repo_lista, repo_usuario, repo_etiqueta
 from negocio.lista import agregar_tarjeta, quitar_tarjeta
 from negocio.comentario import crear_comentario
 
 
 def crear_tarjeta(id_lista, titulo, descripcion=None, fecha_limite=None, estado='pendiente'):
+    if repo_lista.obtener_lista(id_lista) is None:
+        return None
     tarjeta = Tarjeta(
         id_lista=id_lista,
         titulo=titulo,
@@ -20,12 +24,12 @@ def crear_tarjeta(id_lista, titulo, descripcion=None, fecha_limite=None, estado=
     return tarjeta
 
 
-def obtener_tarjeta(id_tarjeta):
-    return repo_tarjeta.obtener_tarjeta(id_tarjeta)
+def obtener_tarjeta(id_tarjeta, papelera=False):
+    return repo_tarjeta.obtener_tarjeta(id_tarjeta, papelera)
 
 
-def listado_tarjetas(id_lista=None):
-    return repo_tarjeta.listado_tarjetas(id_lista)
+def listado_tarjetas(id_lista=None, papelera=False):
+    return repo_tarjeta.listado_tarjetas(id_lista, papelera)
 
 
 def actualizar_tarjeta(id_tarjeta, **cambios):
@@ -45,13 +49,29 @@ def eliminar_tarjeta(id_tarjeta):
     return repo_tarjeta.eliminar_tarjeta(tarjeta)
 
 
+def restaurar_tarjeta(id_tarjeta):
+    """No se puede restaurar una tarjeta cuya lista está en la papelera: primero la lista."""
+    tarjeta = repo_tarjeta.obtener_tarjeta(id_tarjeta, papelera=True)
+    if tarjeta is None or not repo_tarjeta.lista_esta_activa(tarjeta):
+        return False
+    return repo_tarjeta.restaurar_tarjeta(tarjeta)
+
+
+def purgar_tarjeta(id_tarjeta):
+    """Borrado definitivo. Solo se permite sobre tarjetas que ya están en la papelera."""
+    tarjeta = repo_tarjeta.obtener_tarjeta(id_tarjeta, papelera=True)
+    if tarjeta is None:
+        return False
+    return repo_tarjeta.purgar_tarjeta(tarjeta)
+
+
 def mover(id_tarjeta, id_lista_destino):
     """
     Mueve la tarjeta a otra lista. Completar una tarea NO pasa por aquí:
     eso es solo cambiar_estado(), la tarjeta sigue en su lista.
     """
     tarjeta = repo_tarjeta.obtener_tarjeta(id_tarjeta)
-    if tarjeta is None:
+    if tarjeta is None or repo_lista.obtener_lista(id_lista_destino) is None:
         return None
     quitar_tarjeta(tarjeta)
     agregar_tarjeta(id_lista_destino, tarjeta)

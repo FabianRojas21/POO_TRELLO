@@ -1,11 +1,11 @@
 """
 negocio/tablero.py
-El Tablero se crea junto con su Proyecto (ver negocio/proyecto.py),
+El Tablero se crea junto con su Proyecto (ver negocio/proyecto.py) y se oculta con él,
 por eso aquí no hay crear_tablero ni eliminar_tablero.
 """
 
 from datos.repositorios import repo_tablero, repo_lista, repo_proyecto
-from negocio.lista import crear_lista
+from negocio.lista import crear_lista, eliminar_lista
 
 
 def obtener_tablero(id_tablero):
@@ -30,9 +30,9 @@ def actualizar_tablero(id_tablero, **cambios):
 
 
 def agregar_lista(id_tablero, nombre, orden=None):
-    """Si no se indica el orden, la lista queda al final del tablero."""
+    """Si no se indica el orden, la lista queda al final (después de las de la papelera también)."""
     if orden is None:
-        orden = len(repo_lista.listado_listas(id_tablero)) + 1
+        orden = repo_lista.siguiente_orden(id_tablero)
     return crear_lista(id_tablero, nombre, orden)
 
 
@@ -41,7 +41,5 @@ def mostrar_listas(id_tablero):
 
 
 def quitar_lista(id_lista):
-    lista = repo_lista.obtener_lista(id_lista)
-    if lista is None:
-        return False
-    return repo_lista.eliminar_lista(lista)
+    """Manda la lista y sus tarjetas a la papelera (se puede restaurar)."""
+    return eliminar_lista(id_lista)

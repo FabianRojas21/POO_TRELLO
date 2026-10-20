@@ -1,5 +1,7 @@
 """
 negocio/lista.py
+Borrado lógico: eliminar_lista() manda la lista y sus tarjetas a la papelera;
+restaurar_lista() las devuelve (si su proyecto está activo); purgar_lista() borra para siempre.
 """
 
 from datos.modelos.models import Lista
@@ -15,12 +17,12 @@ def crear_lista(id_tablero, nombre, orden):
     return lista
 
 
-def obtener_lista(id_lista):
-    return repo_lista.obtener_lista(id_lista)
+def obtener_lista(id_lista, papelera=False):
+    return repo_lista.obtener_lista(id_lista, papelera)
 
 
-def listado_listas(id_tablero=None):
-    return repo_lista.listado_listas(id_tablero)
+def listado_listas(id_tablero=None, papelera=False):
+    return repo_lista.listado_listas(id_tablero, papelera)
 
 
 def actualizar_lista(id_lista, **cambios):
@@ -38,6 +40,22 @@ def eliminar_lista(id_lista):
     if lista is None:
         return False
     return repo_lista.eliminar_lista(lista)
+
+
+def restaurar_lista(id_lista):
+    """No se puede restaurar una lista cuyo proyecto está en la papelera: primero el proyecto."""
+    lista = repo_lista.obtener_lista(id_lista, papelera=True)
+    if lista is None or not repo_lista.proyecto_esta_activo(lista):
+        return False
+    return repo_lista.restaurar_lista(lista)
+
+
+def purgar_lista(id_lista):
+    """Borrado definitivo. Solo se permite sobre listas que ya están en la papelera."""
+    lista = repo_lista.obtener_lista(id_lista, papelera=True)
+    if lista is None:
+        return False
+    return repo_lista.purgar_lista(lista)
 
 
 def agregar_tarjeta(id_lista, tarjeta):
