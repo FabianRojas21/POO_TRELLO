@@ -111,11 +111,11 @@ def op_ver_participantes():
 @seguro
 def op_eliminar_proyecto():
     codigo = pedir_texto("Código del proyecto")
-    if not confirmar("Se eliminarán también su tablero, listas, tarjetas y comentarios. ¿Continuar?"):
+    if not confirmar("El proyecto y todo lo que contiene (tablero, listas y tarjetas) irán a la papelera y podrás restaurarlos. ¿Continuar?"):
         print("Cancelado.")
         return
     if proyecto.eliminar_proyecto(codigo):
-        print("Proyecto eliminado.")
+        print("Proyecto enviado a la papelera.")
     else:
         print("No existe ese proyecto.")
 
@@ -159,11 +159,11 @@ def op_agregar_lista():
 @seguro
 def op_quitar_lista():
     id_lista = pedir_entero("ID de la lista")
-    if not confirmar("Se eliminarán también las tarjetas de esa lista. ¿Continuar?"):
+    if not confirmar("La lista y sus tarjetas irán a la papelera y podrás restaurarlas. ¿Continuar?"):
         print("Cancelado.")
         return
     if tablero.quitar_lista(id_lista):
-        print("Lista eliminada.")
+        print("Lista enviada a la papelera.")
     else:
         print("No existe esa lista.")
 
@@ -283,11 +283,11 @@ def op_comentar():
 @seguro
 def op_eliminar_tarjeta():
     id_tarjeta = pedir_entero("ID de la tarjeta")
-    if not confirmar("¿Eliminar la tarjeta y sus comentarios?"):
+    if not confirmar("¿Enviar la tarjeta a la papelera?"):
         print("Cancelado.")
         return
     if tarjeta.eliminar_tarjeta(id_tarjeta):
-        print("Tarjeta eliminada.")
+        print("Tarjeta enviada a la papelera.")
     else:
         print("No existe esa tarjeta.")
 
@@ -352,6 +352,96 @@ def op_eliminar_etiqueta():
         print("No existe esa etiqueta.")
 
 
+# ----------------------------------------------------------------- Papelera
+
+@seguro
+def op_ver_papelera():
+    proyectos = proyecto.listado_proyectos(papelera=True)
+    listas = lista.listado_listas(papelera=True)
+    tarjetas = tarjeta.listado_tarjetas(papelera=True)
+    if not (proyectos or listas or tarjetas):
+        print("La papelera está vacía.")
+        return
+    if proyectos:
+        print("\nProyectos eliminados:")
+        _tabla(['Código', 'Nombre'], [[p.codigo_proyecto, p.nombre] for p in proyectos])
+    if listas:
+        print("\nListas eliminadas:")
+        _tabla(['ID', 'Nombre'], [[l.id_lista, l.nombre] for l in listas])
+    if tarjetas:
+        print("\nTarjetas eliminadas:")
+        _tabla(['ID', 'Título', 'Lista'],
+               [[t.id_tarjeta, t.titulo, t.id_lista.nombre] for t in tarjetas])
+    print("\nLas listas y tarjetas que se eliminaron junto con su proyecto o su lista "
+          "vuelven al restaurar ese proyecto o esa lista.")
+
+
+@seguro
+def op_restaurar_proyecto():
+    codigo = pedir_texto("Código del proyecto a restaurar")
+    if proyecto.restaurar_proyecto(codigo):
+        print("Proyecto restaurado con sus listas y tarjetas.")
+    else:
+        print("No se pudo: ese código no está en la papelera.")
+
+
+@seguro
+def op_restaurar_lista():
+    id_lista = pedir_entero("ID de la lista a restaurar")
+    if lista.restaurar_lista(id_lista):
+        print("Lista restaurada con sus tarjetas.")
+    else:
+        print("No se pudo: ese ID no está en la papelera, o su proyecto sigue eliminado "
+              "(restaura primero el proyecto).")
+
+
+@seguro
+def op_restaurar_tarjeta():
+    id_tarjeta = pedir_entero("ID de la tarjeta a restaurar")
+    if tarjeta.restaurar_tarjeta(id_tarjeta):
+        print("Tarjeta restaurada.")
+    else:
+        print("No se pudo: ese ID no está en la papelera, o su lista sigue eliminada "
+              "(restaura primero la lista).")
+
+
+@seguro
+def op_purgar_proyecto():
+    codigo = pedir_texto("Código del proyecto a eliminar definitivamente")
+    if not confirmar("Se borrará para siempre, con su tablero, listas, tarjetas y comentarios. "
+                     "No se puede deshacer. ¿Continuar?"):
+        print("Cancelado.")
+        return
+    if proyecto.purgar_proyecto(codigo):
+        print("Proyecto eliminado definitivamente.")
+    else:
+        print("No se pudo: ese código no está en la papelera.")
+
+
+@seguro
+def op_purgar_lista():
+    id_lista = pedir_entero("ID de la lista a eliminar definitivamente")
+    if not confirmar("Se borrará para siempre, con sus tarjetas. No se puede deshacer. ¿Continuar?"):
+        print("Cancelado.")
+        return
+    if lista.purgar_lista(id_lista):
+        print("Lista eliminada definitivamente.")
+    else:
+        print("No se pudo: ese ID no está en la papelera.")
+
+
+@seguro
+def op_purgar_tarjeta():
+    id_tarjeta = pedir_entero("ID de la tarjeta a eliminar definitivamente")
+    if not confirmar("Se borrará para siempre, con sus comentarios. No se puede deshacer. ¿Continuar?"):
+        print("Cancelado.")
+        return
+    if tarjeta.purgar_tarjeta(id_tarjeta):
+        print("Tarjeta eliminada definitivamente.")
+    else:
+        print("No se pudo: ese ID no está en la papelera.")
+
+
 # -------------------------------------------------------------------- Menús
 
 def _ejecutar_menu(titulo, opciones, acciones):
@@ -371,7 +461,7 @@ def menu_proyectos():
         '4': 'Agregar usuario al proyecto',
         '5': 'Quitar usuario del proyecto',
         '6': 'Ver participantes',
-        '7': 'Eliminar proyecto',
+        '7': 'Eliminar proyecto (a la papelera)',
         '0': 'Volver',
     }
     acciones = {
@@ -386,7 +476,7 @@ def menu_tablero():
     opciones = {
         '1': 'Ver tablero (listas y tarjetas)',
         '2': 'Agregar lista',
-        '3': 'Quitar lista',
+        '3': 'Quitar lista (a la papelera)',
         '0': 'Volver',
     }
     acciones = {'1': op_ver_tablero, '2': op_agregar_lista, '3': op_quitar_lista}
@@ -404,7 +494,7 @@ def menu_tarjetas():
         '7': 'Agregar etiqueta',
         '8': 'Quitar etiqueta',
         '9': 'Agregar comentario',
-        '10': 'Eliminar tarjeta',
+        '10': 'Eliminar tarjeta (a la papelera)',
         '0': 'Volver',
     }
     acciones = {
@@ -428,6 +518,25 @@ def menu_etiquetas():
     _ejecutar_menu('Etiquetas', opciones, acciones)
 
 
+def menu_papelera():
+    opciones = {
+        '1': 'Ver papelera',
+        '2': 'Restaurar proyecto',
+        '3': 'Restaurar lista',
+        '4': 'Restaurar tarjeta',
+        '5': 'Eliminar definitivamente un proyecto',
+        '6': 'Eliminar definitivamente una lista',
+        '7': 'Eliminar definitivamente una tarjeta',
+        '0': 'Volver',
+    }
+    acciones = {
+        '1': op_ver_papelera, '2': op_restaurar_proyecto, '3': op_restaurar_lista,
+        '4': op_restaurar_tarjeta, '5': op_purgar_proyecto, '6': op_purgar_lista,
+        '7': op_purgar_tarjeta,
+    }
+    _ejecutar_menu('Papelera', opciones, acciones)
+
+
 def cargar_menu():
     print(f'{nombre_app} - Version: {version_app}')
     opciones = {
@@ -436,11 +545,12 @@ def cargar_menu():
         '3': 'Tarjetas',
         '4': 'Usuarios',
         '5': 'Etiquetas',
+        '6': 'Papelera',
         '0': 'Salir',
     }
     submenus = {
         '1': menu_proyectos, '2': menu_tablero, '3': menu_tarjetas,
-        '4': menu_usuarios, '5': menu_etiquetas,
+        '4': menu_usuarios, '5': menu_etiquetas, '6': menu_papelera,
     }
     try:
         while True:
