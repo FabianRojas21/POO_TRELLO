@@ -7,10 +7,12 @@ purgar_proyecto() lo borra para siempre (solo si ya está en la papelera).
 
 from datos.modelos.models import Proyecto, Tablero
 from datos.repositorios import repo_proyecto, repo_tablero, repo_usuario
+from negocio import sesion
 
 
 def crear_proyecto(codigo_proyecto, nombre, fecha_inicio, fecha_fin=None, nombre_tablero=None):
     """El Proyecto se crea siempre junto con su Tablero (relación 1-1)."""
+    sesion.exigir_jefe()
     if repo_proyecto.obtener_proyecto(codigo_proyecto) is not None:
         raise ValueError(f"Ya existe un proyecto con el código {codigo_proyecto}.")
     if repo_proyecto.obtener_proyecto(codigo_proyecto, papelera=True) is not None:
@@ -35,14 +37,27 @@ def crear_proyecto(codigo_proyecto, nombre, fecha_inicio, fecha_fin=None, nombre
 
 
 def obtener_proyecto(codigo_proyecto, papelera=False):
-    return repo_proyecto.obtener_proyecto(codigo_proyecto, papelera)
+    if papelera:
+        sesion.exigir_jefe()
+    proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto, papelera)
+    if proyecto is not None and not papelera:
+        sesion.exigir_proyecto(proyecto)
+    return proyecto
 
 
 def listado_proyectos(papelera=False):
+    if papelera:
+        sesion.exigir_jefe()
+    elif not sesion.es_jefe():
+        actual = sesion.usuario_actual()
+        if actual is None:
+            raise PermissionError("Debes iniciar sesión para ver proyectos.")
+        return repo_proyecto.proyectos_de_usuario(actual)
     return repo_proyecto.listado_proyectos(papelera)
 
 
 def actualizar_proyecto(codigo_proyecto, **cambios):
+    sesion.exigir_jefe()
     proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
     if proyecto is None:
         return None
@@ -57,6 +72,7 @@ def actualizar_proyecto(codigo_proyecto, **cambios):
 
 def eliminar_proyecto(codigo_proyecto):
     """Lo manda a la papelera junto con su tablero, listas y tarjetas."""
+    sesion.exigir_jefe()
     proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
     if proyecto is None:
         return False
@@ -65,6 +81,7 @@ def eliminar_proyecto(codigo_proyecto):
 
 def restaurar_proyecto(codigo_proyecto):
     """Lo saca de la papelera con todo lo que contenía (listas y tarjetas)."""
+    sesion.exigir_jefe()
     proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto, papelera=True)
     if proyecto is None:
         return False
@@ -73,6 +90,7 @@ def restaurar_proyecto(codigo_proyecto):
 
 def purgar_proyecto(codigo_proyecto):
     """Borrado definitivo. Solo se permite sobre proyectos que ya están en la papelera."""
+    sesion.exigir_jefe()
     proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto, papelera=True)
     if proyecto is None:
         return False
@@ -80,6 +98,7 @@ def purgar_proyecto(codigo_proyecto):
 
 
 def agregar_usuario(codigo_proyecto, id_usuario):
+    sesion.exigir_jefe()
     proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
     usuario = repo_usuario.obtener_usuario(id_usuario)
     if proyecto is None or usuario is None:
@@ -88,6 +107,7 @@ def agregar_usuario(codigo_proyecto, id_usuario):
 
 
 def remover_usuario(codigo_proyecto, id_usuario):
+    sesion.exigir_jefe()
     proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
     usuario = repo_usuario.obtener_usuario(id_usuario)
     if proyecto is None or usuario is None:

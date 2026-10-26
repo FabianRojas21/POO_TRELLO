@@ -30,6 +30,16 @@ def listado_proyectos(papelera=False):
     return list(Proyecto.select().where(Proyecto.activo == (not papelera)))
 
 
+def proyectos_de_usuario(usuario):
+    return list(
+        Proyecto.select().join(ProyectoUsuario)
+        .where(
+            (ProyectoUsuario.id_usuario == usuario.id_usuario) &
+            (Proyecto.activo == True)
+        )
+    )
+
+
 def _cambiar_activo(proyecto, valor):
     """Marca qué listas y tarjetas deben restaurarse junto con el proyecto."""
     tableros = Tablero.select(Tablero.id_tablero).where(Tablero.id_proyecto == proyecto.id_proyecto)

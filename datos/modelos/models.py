@@ -62,7 +62,7 @@ class Usuario(BaseModel):
     id_usuario = AutoField()
     nombre = CharField(max_length=100)
     rol = CharField(max_length=50)
-    contraseña = CharField(max_length=255)
+    contraseña = CharField(max_length=255, null=True)
 
     class Meta:
         table_name = 'USUARIO'

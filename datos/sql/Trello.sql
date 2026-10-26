@@ -1,13 +1,14 @@
 CREATE DATABASE IF NOT EXISTS trello_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE trello_db;
 
--- 1. Tabla PROYECTO
+-- 2. Tabla PROYECTO
 CREATE TABLE PROYECTO (
     id_proyecto INT AUTO_INCREMENT PRIMARY KEY,
     codigo_proyecto VARCHAR(20) NOT NULL UNIQUE,
     nombre VARCHAR(100) NOT NULL,
     fecha_inicio DATE NOT NULL,
-    fecha_fin DATE NULL
+    fecha_fin DATE NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB;
 
 -- 2. Tabla USUARIO
@@ -15,7 +16,8 @@ CREATE TABLE USUARIO (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     rol VARCHAR(50) NOT NULL,
-    activo TINYINT(1) NOT NULL DEFAULT 1
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    `contraseña` VARCHAR(255) NULL
 ) ENGINE=InnoDB;
 
 -- 3. Tabla PROYECTO_USUARIO (Relación N:M — participación)
@@ -42,7 +44,10 @@ CREATE TABLE LISTA (
     id_tablero INT NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     orden INT NOT NULL,
-    CONSTRAINT fk_lista_tablero FOREIGN KEY (id_tablero) REFERENCES TABLERO(id_tablero) ON DELETE CASCADE
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    restaurar_con_proyecto TINYINT(1) NOT NULL DEFAULT 0,
+    CONSTRAINT fk_lista_tablero
+        FOREIGN KEY (id_tablero) REFERENCES TABLERO(id_tablero) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- 6. Tabla TARJETA
@@ -53,7 +58,11 @@ CREATE TABLE TARJETA (
     descripcion TEXT,
     fecha_limite DATE NULL,
     estado VARCHAR(50) NOT NULL DEFAULT 'pendiente',
-    CONSTRAINT fk_tarjeta_lista FOREIGN KEY (id_lista) REFERENCES LISTA(id_lista) ON DELETE CASCADE
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    restaurar_con_lista TINYINT(1) NOT NULL DEFAULT 0,
+    restaurar_con_proyecto TINYINT(1) NOT NULL DEFAULT 0,
+    CONSTRAINT fk_tarjeta_lista
+        FOREIGN KEY (id_lista) REFERENCES LISTA(id_lista) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- 7. Tabla COMENTARIO

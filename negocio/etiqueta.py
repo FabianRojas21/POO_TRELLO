@@ -4,9 +4,11 @@ negocio/etiqueta.py
 
 from datos.modelos.models import Etiqueta
 from datos.repositorios import repo_etiqueta
+from negocio import sesion
 
 
 def crear_etiqueta(nombre, color):
+    sesion.exigir_jefe()
     etiqueta = Etiqueta(nombre=nombre, color=color)
     repo_etiqueta.guardar_etiqueta(etiqueta)
     return etiqueta
@@ -21,6 +23,7 @@ def listado_etiquetas(papelera=False):
 
 
 def actualizar_etiqueta(id_etiqueta, **cambios):
+    sesion.exigir_jefe()
     etiqueta = repo_etiqueta.obtener_etiqueta(id_etiqueta)
     if etiqueta is None:
         return None
@@ -33,6 +36,7 @@ def actualizar_etiqueta(id_etiqueta, **cambios):
 
 
 def eliminar_etiqueta(id_etiqueta):
+    sesion.exigir_jefe()
     etiqueta = repo_etiqueta.obtener_etiqueta(id_etiqueta)
     if etiqueta is None:
         return False
@@ -40,6 +44,7 @@ def eliminar_etiqueta(id_etiqueta):
 
 
 def restaurar_etiqueta(id_etiqueta):
+    sesion.exigir_jefe()
     etiqueta = repo_etiqueta.obtener_etiqueta(id_etiqueta, papelera=True)
     if etiqueta is None:
         return False

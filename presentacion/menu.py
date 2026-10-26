@@ -4,6 +4,7 @@ Menú de consola. Solo habla con la capa de negocio.
 """
 
 from functools import wraps
+from getpass import getpass
 
 from prettytable import PrettyTable
 
@@ -13,6 +14,7 @@ from auxiliares.opciones_menu import (
     pedir_fecha, pedir_estado, confirmar,
 )
 from negocio import proyecto, tablero, lista, tarjeta, usuario, etiqueta, comentario
+from negocio import sesion
 
 
 def seguro(funcion):
@@ -232,7 +234,9 @@ def op_cambiar_estado():
 @seguro
 def op_asignar_usuario():
     id_tarjeta = pedir_entero("ID de la tarjeta")
-    id_usuario = pedir_entero("ID del usuario")
+    actual = sesion.usuario_actual()
+    id_usuario = (actual.id_usuario if not sesion.es_jefe()
+                  else pedir_entero("ID del usuario"))
     if tarjeta.asignar_usuario(id_tarjeta, id_usuario):
         print("Usuario asignado como responsable.")
     else:
@@ -242,7 +246,9 @@ def op_asignar_usuario():
 @seguro
 def op_quitar_usuario_asignado():
     id_tarjeta = pedir_entero("ID de la tarjeta")
-    id_usuario = pedir_entero("ID del usuario")
+    actual = sesion.usuario_actual()
+    id_usuario = (actual.id_usuario if not sesion.es_jefe()
+                  else pedir_entero("ID del usuario"))
     if tarjeta.quitar_usuario_asignado(id_tarjeta, id_usuario):
         print("Responsable quitado.")
     else:
@@ -272,7 +278,7 @@ def op_quitar_etiqueta():
 @seguro
 def op_comentar():
     id_tarjeta = pedir_entero("ID de la tarjeta")
-    id_usuario = pedir_entero("ID del usuario que comenta")
+    id_usuario = sesion.usuario_actual().id_usuario
     texto = pedir_texto("Comentario")
     if tarjeta.agregar_comentario(id_tarjeta, id_usuario, texto) is None:
         print("No se pudo: revisa los IDs.")
@@ -297,8 +303,21 @@ def op_eliminar_tarjeta():
 @seguro
 def op_crear_usuario():
     nombre = pedir_texto("Nombre")
-    rol = pedir_texto("Rol (por ejemplo: Jefe de proyecto, Trabajador)")
-    nuevo = usuario.crear_usuario(nombre, rol)
+    print("Roles disponibles:")
+    print("  1) Jefe de proyecto")
+    print("  2) Trabajador")
+    rol = {1: 'Jefe de proyecto', 2: 'Trabajador'}.get(
+        pedir_entero("Selecciona el rol")
+    )
+    if rol is None:
+        print("Rol no válido.")
+        return
+    contrasena = getpass("Contraseña: ")
+    confirmacion = getpass("Confirma la contraseña: ")
+    if contrasena != confirmacion:
+        print("Las contraseñas no coinciden.")
+        return
+    nuevo = usuario.crear_usuario(nombre, rol, contrasena)
     print(f"Usuario creado con ID {nuevo.id_usuario}.")
 
 
@@ -522,6 +541,14 @@ def menu_proyectos():
         '4': op_agregar_usuario_proyecto, '5': op_quitar_usuario_proyecto,
         '6': op_ver_participantes, '7': op_eliminar_proyecto,
     }
+    if not sesion.es_jefe():
+        opciones = {
+            '2': 'Listar mis proyectos',
+            '3': 'Ver avance',
+            '6': 'Ver participantes',
+            '0': 'Volver',
+        }
+        acciones = {'2': op_listar_proyectos, '3': op_ver_avance, '6': op_ver_participantes}
     _ejecutar_menu('Proyectos', opciones, acciones)
 
 
@@ -533,6 +560,9 @@ def menu_tablero():
         '0': 'Volver',
     }
     acciones = {'1': op_ver_tablero, '2': op_agregar_lista, '3': op_quitar_lista}
+    if not sesion.es_jefe():
+        opciones = {'1': 'Ver tablero de mis proyectos', '0': 'Volver'}
+        acciones = {'1': op_ver_tablero}
     _ejecutar_menu('Tablero', opciones, acciones)
 
 
@@ -562,18 +592,21 @@ def menu_tarjetas():
 
 
 def menu_usuarios():
+    sesion.exigir_jefe()
     opciones = {'1': 'Crear usuario', '2': 'Listar usuarios', '3': 'Eliminar usuario', '0': 'Volver'}
     acciones = {'1': op_crear_usuario, '2': op_listar_usuarios, '3': op_eliminar_usuario}
     _ejecutar_menu('Usuarios', opciones, acciones)
 
 
 def menu_etiquetas():
+    sesion.exigir_jefe()
     opciones = {'1': 'Crear etiqueta', '2': 'Listar etiquetas', '3': 'Eliminar etiqueta', '0': 'Volver'}
     acciones = {'1': op_crear_etiqueta, '2': op_listar_etiquetas, '3': op_eliminar_etiqueta}
     _ejecutar_menu('Etiquetas', opciones, acciones)
 
 
 def menu_papelera():
+    sesion.exigir_jefe()
     opciones = {
         '1': 'Ver papelera',
         '2': 'Restaurar proyecto',
@@ -603,15 +636,20 @@ def cargar_menu():
         '1': 'Proyectos',
         '2': 'Tablero',
         '3': 'Tarjetas',
-        '4': 'Usuarios',
-        '5': 'Etiquetas',
-        '6': 'Papelera',
         '0': 'Salir',
     }
     submenus = {
         '1': menu_proyectos, '2': menu_tablero, '3': menu_tarjetas,
-        '4': menu_usuarios, '5': menu_etiquetas, '6': menu_papelera,
     }
+    if sesion.es_jefe():
+        opciones.update({
+            '4': 'Usuarios',
+            '5': 'Etiquetas',
+            '6': 'Papelera',
+        })
+        submenus.update({
+            '4': menu_usuarios, '5': menu_etiquetas, '6': menu_papelera,
+        })
     try:
         while True:
             mostrar_menu('Menú principal', opciones)
