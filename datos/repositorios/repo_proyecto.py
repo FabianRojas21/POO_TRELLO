@@ -98,5 +98,8 @@ def contar_tarjetas(proyecto, estado=None):
 def usuarios_de_proyecto(proyecto):
     return list(
         Usuario.select().join(ProyectoUsuario)
-        .where(ProyectoUsuario.id_proyecto == proyecto)
+        .where(
+            (ProyectoUsuario.id_proyecto == proyecto) &
+            (Usuario.activo == True)
+        )
     )

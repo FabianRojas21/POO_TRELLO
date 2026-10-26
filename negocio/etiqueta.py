@@ -12,12 +12,12 @@ def crear_etiqueta(nombre, color):
     return etiqueta
 
 
-def obtener_etiqueta(id_etiqueta):
-    return repo_etiqueta.obtener_etiqueta(id_etiqueta)
+def obtener_etiqueta(id_etiqueta, papelera=False):
+    return repo_etiqueta.obtener_etiqueta(id_etiqueta, papelera)
 
 
-def listado_etiquetas():
-    return repo_etiqueta.listado_etiquetas()
+def listado_etiquetas(papelera=False):
+    return repo_etiqueta.listado_etiquetas(papelera)
 
 
 def actualizar_etiqueta(id_etiqueta, **cambios):
@@ -37,3 +37,10 @@ def eliminar_etiqueta(id_etiqueta):
     if etiqueta is None:
         return False
     return repo_etiqueta.eliminar_etiqueta(etiqueta)
+
+
+def restaurar_etiqueta(id_etiqueta):
+    etiqueta = repo_etiqueta.obtener_etiqueta(id_etiqueta, papelera=True)
+    if etiqueta is None:
+        return False
+    return repo_etiqueta.restaurar_etiqueta(etiqueta)

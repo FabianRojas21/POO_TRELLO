@@ -97,12 +97,18 @@ def quitar_etiqueta(tarjeta, etiqueta):
 def usuarios_de_tarjeta(tarjeta):
     return list(
         Usuario.select().join(AsignacionTarjeta)
-        .where(AsignacionTarjeta.id_tarjeta == tarjeta)
+        .where(
+            (AsignacionTarjeta.id_tarjeta == tarjeta) &
+            (Usuario.activo == True)
+        )
     )
 
 
 def etiquetas_de_tarjeta(tarjeta):
     return list(
         Etiqueta.select().join(TarjetaEtiqueta)
-        .where(TarjetaEtiqueta.id_tarjeta == tarjeta)
+        .where(
+            (TarjetaEtiqueta.id_tarjeta == tarjeta) &
+            (Etiqueta.activo == True)
+        )
     )

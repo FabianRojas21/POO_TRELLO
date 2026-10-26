@@ -14,12 +14,12 @@ def crear_usuario(nombre, rol):
     return usuario
 
 
-def obtener_usuario(id_usuario):
-    return repo_usuario.obtener_usuario(id_usuario)
+def obtener_usuario(id_usuario, papelera=False):
+    return repo_usuario.obtener_usuario(id_usuario, papelera)
 
 
-def listado_usuarios():
-    return repo_usuario.listado_usuarios()
+def listado_usuarios(papelera=False):
+    return repo_usuario.listado_usuarios(papelera)
 
 
 def actualizar_usuario(id_usuario, **cambios):
@@ -39,3 +39,10 @@ def eliminar_usuario(id_usuario):
     if usuario is None:
         return False
     return repo_usuario.eliminar_usuario(usuario)
+
+
+def restaurar_usuario(id_usuario):
+    usuario = repo_usuario.obtener_usuario(id_usuario, papelera=True)
+    if usuario is None:
+        return False
+    return repo_usuario.restaurar_usuario(usuario)

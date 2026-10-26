@@ -11,7 +11,14 @@ def guardar_usuario(usuario):
 
 
 def eliminar_usuario(usuario):
-    usuario.delete_instance()
+    Usuario.update(activo=False).where(Usuario.id_usuario == usuario.id_usuario).execute()
+    usuario.activo = False
+    return True
+
+
+def restaurar_usuario(usuario):
+    Usuario.update(activo=True).where(Usuario.id_usuario == usuario.id_usuario).execute()
+    usuario.activo = True
     return True
 
 
@@ -20,9 +27,11 @@ def actualizar_usuario(usuario):
     return True
 
 
-def obtener_usuario(id_usuario):
-    return Usuario.get_or_none(Usuario.id_usuario == id_usuario)
+def obtener_usuario(id_usuario, papelera=False):
+    return Usuario.get_or_none(
+        (Usuario.id_usuario == id_usuario) & (Usuario.activo == (not papelera))
+    )
 
 
-def listado_usuarios():
-    return list(Usuario.select())
+def listado_usuarios(papelera=False):
+    return list(Usuario.select().where(Usuario.activo == (not papelera)))

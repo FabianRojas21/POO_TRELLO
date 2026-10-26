@@ -1,5 +1,4 @@
 ﻿from datetime import date
-
 from peewee import *
 from datos.conexion import conectar
 
@@ -59,9 +58,11 @@ class Tarjeta(BaseModel):
         table_name = 'TARJETA'
 
 class Usuario(BaseModel):
+    activo = BooleanField(default=True)
     id_usuario = AutoField()
     nombre = CharField(max_length=100)
     rol = CharField(max_length=50)
+    contraseña = CharField(max_length=255)
 
     class Meta:
         table_name = 'USUARIO'
@@ -78,6 +79,7 @@ class AsignacionTarjeta(BaseModel):
         primary_key = CompositeKey('id_tarjeta', 'id_usuario')
 
 class Comentario(BaseModel):
+    activo = BooleanField(default=True)
     fecha = DateField(default=date.today, constraints=[SQL("DEFAULT (CURRENT_DATE)")])
     id_comentario = AutoField()
     id_tarjeta = ForeignKeyField(column_name='id_tarjeta', field='id_tarjeta', model=Tarjeta, on_delete='CASCADE')
@@ -88,6 +90,7 @@ class Comentario(BaseModel):
         table_name = 'COMENTARIO'
 
 class Etiqueta(BaseModel):
+    activo = BooleanField(default=True)
     color = CharField(max_length=20)
     id_etiqueta = AutoField()
     nombre = CharField(max_length=50)

@@ -14,7 +14,8 @@ CREATE TABLE PROYECTO (
 CREATE TABLE USUARIO (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    rol VARCHAR(50) NOT NULL
+    rol VARCHAR(50) NOT NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB;
 
 -- 3. Tabla PROYECTO_USUARIO (Relación N:M — participación)
@@ -62,6 +63,7 @@ CREATE TABLE COMENTARIO (
     id_usuario INT NOT NULL,
     texto TEXT NOT NULL,
     fecha DATE NOT NULL DEFAULT (CURRENT_DATE),
+    activo TINYINT(1) NOT NULL DEFAULT 1,
     CONSTRAINT fk_comentario_tarjeta FOREIGN KEY (id_tarjeta) REFERENCES TARJETA(id_tarjeta) ON DELETE CASCADE,
     CONSTRAINT fk_comentario_usuario FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -70,7 +72,8 @@ CREATE TABLE COMENTARIO (
 CREATE TABLE ETIQUETA (
     id_etiqueta INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL,
-    color VARCHAR(20) NOT NULL
+    color VARCHAR(20) NOT NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB;
 
 -- 9. Tabla ASIGNACION_TARJETA (Relación N:M — responsables de la tarjeta)

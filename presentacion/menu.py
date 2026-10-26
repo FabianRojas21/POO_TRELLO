@@ -202,7 +202,7 @@ def op_ver_detalle_tarjeta():
     comentarios = comentario.listado_comentarios(id_tarjeta)
     print("  Comentarios:" + ("" if comentarios else " -"))
     for c in comentarios:
-        print(f"    - {c.id_usuario.nombre} ({c.fecha}): {c.texto}")
+        print(f"    [{c.id_comentario}] {c.id_usuario.nombre} ({c.fecha}): {c.texto}")
 
 
 @seguro
@@ -314,11 +314,11 @@ def op_listar_usuarios():
 @seguro
 def op_eliminar_usuario():
     id_usuario = pedir_entero("ID del usuario")
-    if not confirmar("Se eliminarán también sus comentarios y asignaciones. ¿Continuar?"):
+    if not confirmar("El usuario se deshabilitará y podrás restaurarlo. ¿Continuar?"):
         print("Cancelado.")
         return
     if usuario.eliminar_usuario(id_usuario):
-        print("Usuario eliminado.")
+        print("Usuario enviado a la papelera.")
     else:
         print("No existe ese usuario.")
 
@@ -343,13 +343,25 @@ def op_listar_etiquetas():
 @seguro
 def op_eliminar_etiqueta():
     id_etiqueta = pedir_entero("ID de la etiqueta")
-    if not confirmar("Se quitará de todas las tarjetas que la usan. ¿Continuar?"):
+    if not confirmar("La etiqueta se deshabilitará y podrás restaurarla. ¿Continuar?"):
         print("Cancelado.")
         return
     if etiqueta.eliminar_etiqueta(id_etiqueta):
-        print("Etiqueta eliminada.")
+        print("Etiqueta enviada a la papelera.")
     else:
         print("No existe esa etiqueta.")
+
+
+@seguro
+def op_eliminar_comentario():
+    id_comentario = pedir_entero("ID del comentario")
+    if not confirmar("El comentario se deshabilitará y podrás restaurarlo. ¿Continuar?"):
+        print("Cancelado.")
+        return
+    if comentario.eliminar_comentario(id_comentario):
+        print("Comentario enviado a la papelera.")
+    else:
+        print("No existe ese comentario.")
 
 
 # ----------------------------------------------------------------- Papelera
@@ -359,7 +371,10 @@ def op_ver_papelera():
     proyectos = proyecto.listado_proyectos(papelera=True)
     listas = lista.listado_listas(papelera=True)
     tarjetas = tarjeta.listado_tarjetas(papelera=True)
-    if not (proyectos or listas or tarjetas):
+    usuarios = usuario.listado_usuarios(papelera=True)
+    etiquetas = etiqueta.listado_etiquetas(papelera=True)
+    comentarios = comentario.listado_comentarios(papelera=True)
+    if not (proyectos or listas or tarjetas or usuarios or etiquetas or comentarios):
         print("La papelera está vacía.")
         return
     if proyectos:
@@ -372,6 +387,17 @@ def op_ver_papelera():
         print("\nTarjetas eliminadas:")
         _tabla(['ID', 'Título', 'Lista'],
                [[t.id_tarjeta, t.titulo, t.id_lista.nombre] for t in tarjetas])
+    if usuarios:
+        print("\nUsuarios deshabilitados:")
+        _tabla(['ID', 'Nombre', 'Rol'], [[u.id_usuario, u.nombre, u.rol] for u in usuarios])
+    if etiquetas:
+        print("\nEtiquetas deshabilitadas:")
+        _tabla(['ID', 'Nombre', 'Color'],
+               [[e.id_etiqueta, e.nombre, e.color] for e in etiquetas])
+    if comentarios:
+        print("\nComentarios eliminados:")
+        _tabla(['ID', 'Tarjeta', 'Comentario'],
+               [[c.id_comentario, c.id_tarjeta_id, c.texto] for c in comentarios])
     print("\nLas listas y tarjetas que se eliminaron junto con su proyecto o su lista "
           "vuelven al restaurar ese proyecto o esa lista.")
 
@@ -403,6 +429,33 @@ def op_restaurar_tarjeta():
     else:
         print("No se pudo: ese ID no está en la papelera, o su lista sigue eliminada "
               "(restaura primero la lista).")
+
+
+@seguro
+def op_restaurar_usuario():
+    id_usuario = pedir_entero("ID del usuario a restaurar")
+    if usuario.restaurar_usuario(id_usuario):
+        print("Usuario restaurado.")
+    else:
+        print("No existe ese usuario en la papelera.")
+
+
+@seguro
+def op_restaurar_etiqueta():
+    id_etiqueta = pedir_entero("ID de la etiqueta a restaurar")
+    if etiqueta.restaurar_etiqueta(id_etiqueta):
+        print("Etiqueta restaurada.")
+    else:
+        print("No existe esa etiqueta en la papelera.")
+
+
+@seguro
+def op_restaurar_comentario():
+    id_comentario = pedir_entero("ID del comentario a restaurar")
+    if comentario.restaurar_comentario(id_comentario):
+        print("Comentario restaurado.")
+    else:
+        print("No existe ese comentario en la papelera.")
 
 
 @seguro
@@ -495,6 +548,7 @@ def menu_tarjetas():
         '8': 'Quitar etiqueta',
         '9': 'Agregar comentario',
         '10': 'Eliminar tarjeta (a la papelera)',
+        '11': 'Eliminar comentario (a la papelera)',
         '0': 'Volver',
     }
     acciones = {
@@ -502,6 +556,7 @@ def menu_tarjetas():
         '4': op_cambiar_estado, '5': op_asignar_usuario, '6': op_quitar_usuario_asignado,
         '7': op_agregar_etiqueta, '8': op_quitar_etiqueta, '9': op_comentar,
         '10': op_eliminar_tarjeta,
+        '11': op_eliminar_comentario,
     }
     _ejecutar_menu('Tarjetas', opciones, acciones)
 
@@ -527,12 +582,17 @@ def menu_papelera():
         '5': 'Eliminar definitivamente un proyecto',
         '6': 'Eliminar definitivamente una lista',
         '7': 'Eliminar definitivamente una tarjeta',
+        '8': 'Restaurar usuario',
+        '9': 'Restaurar etiqueta',
+        '10': 'Restaurar comentario',
         '0': 'Volver',
     }
     acciones = {
         '1': op_ver_papelera, '2': op_restaurar_proyecto, '3': op_restaurar_lista,
         '4': op_restaurar_tarjeta, '5': op_purgar_proyecto, '6': op_purgar_lista,
         '7': op_purgar_tarjeta,
+        '8': op_restaurar_usuario, '9': op_restaurar_etiqueta,
+        '10': op_restaurar_comentario,
     }
     _ejecutar_menu('Papelera', opciones, acciones)
 

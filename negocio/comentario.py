@@ -16,12 +16,12 @@ def crear_comentario(id_tarjeta, id_usuario, texto):
     return comentario
 
 
-def obtener_comentario(id_comentario):
-    return repo_comentario.obtener_comentario(id_comentario)
+def obtener_comentario(id_comentario, papelera=False):
+    return repo_comentario.obtener_comentario(id_comentario, papelera)
 
 
-def listado_comentarios(id_tarjeta=None):
-    return repo_comentario.listado_comentarios(id_tarjeta)
+def listado_comentarios(id_tarjeta=None, papelera=False):
+    return repo_comentario.listado_comentarios(id_tarjeta, papelera)
 
 
 def actualizar_comentario(id_comentario, **cambios):
@@ -41,3 +41,10 @@ def eliminar_comentario(id_comentario):
     if comentario is None:
         return False
     return repo_comentario.eliminar_comentario(comentario)
+
+
+def restaurar_comentario(id_comentario):
+    comentario = repo_comentario.obtener_comentario(id_comentario, papelera=True)
+    if comentario is None:
+        return False
+    return repo_comentario.restaurar_comentario(comentario)
