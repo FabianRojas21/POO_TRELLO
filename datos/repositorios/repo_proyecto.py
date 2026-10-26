@@ -31,12 +31,28 @@ def listado_proyectos(papelera=False):
 
 
 def _cambiar_activo(proyecto, valor):
-    """Pone activo=valor en el proyecto y, en cascada, en sus listas y tarjetas."""
+    """Marca qué listas y tarjetas deben restaurarse junto con el proyecto."""
     tableros = Tablero.select(Tablero.id_tablero).where(Tablero.id_proyecto == proyecto.id_proyecto)
     listas = Lista.select(Lista.id_lista).where(Lista.id_tablero.in_(tableros))
     with Proyecto._meta.database.atomic():
-        Tarjeta.update(activo=valor).where(Tarjeta.id_lista.in_(listas)).execute()
-        Lista.update(activo=valor).where(Lista.id_tablero.in_(tableros)).execute()
+        if valor:
+            Tarjeta.update(activo=True, restaurar_con_proyecto=False).where(
+                (Tarjeta.id_lista.in_(listas)) & (Tarjeta.restaurar_con_proyecto == True)
+            ).execute()
+            Lista.update(activo=True, restaurar_con_proyecto=False).where(
+                (Lista.id_tablero.in_(tableros)) & (Lista.restaurar_con_proyecto == True)
+            ).execute()
+        else:
+            Tarjeta.update(activo=False, restaurar_con_proyecto=True).where(
+                (Tarjeta.id_lista.in_(
+                    Lista.select(Lista.id_lista).where(
+                        (Lista.id_tablero.in_(tableros)) & (Lista.activo == True)
+                    )
+                )) & (Tarjeta.activo == True)
+            ).execute()
+            Lista.update(activo=False, restaurar_con_proyecto=True).where(
+                (Lista.id_tablero.in_(tableros)) & (Lista.activo == True)
+            ).execute()
         Proyecto.update(activo=valor).where(Proyecto.id_proyecto == proyecto.id_proyecto).execute()
     proyecto.activo = valor
 

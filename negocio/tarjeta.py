@@ -36,6 +36,9 @@ def actualizar_tarjeta(id_tarjeta, **cambios):
     tarjeta = repo_tarjeta.obtener_tarjeta(id_tarjeta)
     if tarjeta is None:
         return None
+    campos_permitidos = {'titulo', 'descripcion', 'fecha_limite', 'estado'}
+    if not cambios.keys() <= campos_permitidos:
+        raise ValueError("Solo se pueden actualizar título, descripción, fecha límite y estado.")
     for campo, valor in cambios.items():
         setattr(tarjeta, campo, valor)
     repo_tarjeta.actualizar_tarjeta(tarjeta)

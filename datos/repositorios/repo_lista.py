@@ -53,7 +53,15 @@ def proyecto_esta_activo(lista):
 
 def _cambiar_activo(lista, valor):
     with Lista._meta.database.atomic():
-        Tarjeta.update(activo=valor).where(Tarjeta.id_lista == lista.id_lista).execute()
+        if valor:
+            Tarjeta.update(activo=True, restaurar_con_lista=False).where(
+                (Tarjeta.id_lista == lista.id_lista) &
+                (Tarjeta.restaurar_con_lista == True)
+            ).execute()
+        else:
+            Tarjeta.update(activo=False, restaurar_con_lista=True).where(
+                (Tarjeta.id_lista == lista.id_lista) & (Tarjeta.activo == True)
+            ).execute()
         Lista.update(activo=valor).where(Lista.id_lista == lista.id_lista).execute()
     lista.activo = valor
 

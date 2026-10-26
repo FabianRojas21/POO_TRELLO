@@ -28,6 +28,8 @@ def actualizar_comentario(id_comentario, **cambios):
     comentario = repo_comentario.obtener_comentario(id_comentario)
     if comentario is None:
         return None
+    if not cambios.keys() <= {'texto'}:
+        raise ValueError("Solo se puede actualizar el texto del comentario.")
     for campo, valor in cambios.items():
         setattr(comentario, campo, valor)
     repo_comentario.actualizar_comentario(comentario)

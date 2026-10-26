@@ -24,6 +24,8 @@ def actualizar_etiqueta(id_etiqueta, **cambios):
     etiqueta = repo_etiqueta.obtener_etiqueta(id_etiqueta)
     if etiqueta is None:
         return None
+    if not cambios.keys() <= {'nombre', 'color'}:
+        raise ValueError("Solo se pueden actualizar el nombre y el color de la etiqueta.")
     for campo, valor in cambios.items():
         setattr(etiqueta, campo, valor)
     repo_etiqueta.actualizar_etiqueta(etiqueta)

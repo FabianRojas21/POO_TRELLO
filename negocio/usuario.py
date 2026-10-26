@@ -26,6 +26,8 @@ def actualizar_usuario(id_usuario, **cambios):
     usuario = repo_usuario.obtener_usuario(id_usuario)
     if usuario is None:
         return None
+    if not cambios.keys() <= {'nombre', 'rol'}:
+        raise ValueError("Solo se pueden actualizar el nombre y el rol del usuario.")
     for campo, valor in cambios.items():
         setattr(usuario, campo, valor)
     repo_usuario.actualizar_usuario(usuario)

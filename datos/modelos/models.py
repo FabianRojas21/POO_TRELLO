@@ -1,4 +1,6 @@
-﻿from peewee import *
+﻿from datetime import date
+
+from peewee import *
 from datos.conexion import conectar
 
 
@@ -23,7 +25,7 @@ class Proyecto(BaseModel):
         table_name = 'PROYECTO'
 
 class Tablero(BaseModel):
-    fecha_creacion = DateField(constraints=[SQL("DEFAULT curdate()")])
+    fecha_creacion = DateField(default=date.today, constraints=[SQL("DEFAULT (CURRENT_DATE)")])
     id_proyecto = ForeignKeyField(column_name='id_proyecto', field='id_proyecto', model=Proyecto, on_delete='CASCADE', unique=True)
     id_tablero = AutoField()
     nombre = CharField(max_length=100)
@@ -33,6 +35,7 @@ class Tablero(BaseModel):
 
 class Lista(BaseModel):
     activo = BooleanField(default=True)
+    restaurar_con_proyecto = BooleanField(default=False)
     id_lista = AutoField()
     id_tablero = ForeignKeyField(column_name='id_tablero', field='id_tablero', model=Tablero, on_delete='CASCADE')
     nombre = CharField(max_length=100)
@@ -48,6 +51,8 @@ class Tarjeta(BaseModel):
     fecha_limite = DateField(null=True)
     id_lista = ForeignKeyField(column_name='id_lista', field='id_lista', model=Lista, on_delete='CASCADE')
     id_tarjeta = AutoField()
+    restaurar_con_lista = BooleanField(default=False)
+    restaurar_con_proyecto = BooleanField(default=False)
     titulo = CharField(max_length=150)
 
     class Meta:
@@ -73,7 +78,7 @@ class AsignacionTarjeta(BaseModel):
         primary_key = CompositeKey('id_tarjeta', 'id_usuario')
 
 class Comentario(BaseModel):
-    fecha = DateField(constraints=[SQL("DEFAULT curdate()")])
+    fecha = DateField(default=date.today, constraints=[SQL("DEFAULT (CURRENT_DATE)")])
     id_comentario = AutoField()
     id_tarjeta = ForeignKeyField(column_name='id_tarjeta', field='id_tarjeta', model=Tarjeta, on_delete='CASCADE')
     id_usuario = ForeignKeyField(column_name='id_usuario', field='id_usuario', model=Usuario, on_delete='CASCADE')
@@ -111,4 +116,3 @@ class TarjetaEtiqueta(BaseModel):
             (('id_tarjeta', 'id_etiqueta'), True),
         )
         primary_key = CompositeKey('id_tarjeta', 'id_etiqueta')
-

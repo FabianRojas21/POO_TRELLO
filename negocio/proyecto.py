@@ -46,6 +46,9 @@ def actualizar_proyecto(codigo_proyecto, **cambios):
     proyecto = repo_proyecto.obtener_proyecto(codigo_proyecto)
     if proyecto is None:
         return None
+    campos_permitidos = {'codigo_proyecto', 'nombre', 'fecha_inicio', 'fecha_fin'}
+    if not cambios.keys() <= campos_permitidos:
+        raise ValueError("Solo se pueden actualizar código, nombre y fechas del proyecto.")
     for campo, valor in cambios.items():
         setattr(proyecto, campo, valor)
     repo_proyecto.actualizar_proyecto(proyecto)

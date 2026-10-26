@@ -29,6 +29,8 @@ def actualizar_lista(id_lista, **cambios):
     lista = repo_lista.obtener_lista(id_lista)
     if lista is None:
         return None
+    if not cambios.keys() <= {'nombre', 'orden'}:
+        raise ValueError("Solo se pueden actualizar el nombre y el orden de la lista.")
     for campo, valor in cambios.items():
         setattr(lista, campo, valor)
     repo_lista.actualizar_lista(lista)

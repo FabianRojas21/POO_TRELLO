@@ -23,6 +23,8 @@ def actualizar_tablero(id_tablero, **cambios):
     tablero = repo_tablero.obtener_tablero(id_tablero)
     if tablero is None:
         return None
+    if not cambios.keys() <= {'nombre'}:
+        raise ValueError("Solo se puede actualizar el nombre del tablero.")
     for campo, valor in cambios.items():
         setattr(tablero, campo, valor)
     repo_tablero.actualizar_tablero(tablero)
