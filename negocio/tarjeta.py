@@ -4,7 +4,7 @@ Borrado lógico: eliminar_tarjeta() la manda a la papelera; restaurar_tarjeta() 
 (si su lista está activa); purgar_tarjeta() la borra para siempre.
 """
 
-from datos.modelos.models import Tarjeta
+from datos.modelos.models import ProyectoUsuario, Tarjeta
 from datos.repositorios import repo_tarjeta, repo_lista, repo_usuario, repo_etiqueta
 from negocio.lista import agregar_tarjeta, quitar_tarjeta
 from negocio.comentario import crear_comentario
@@ -116,6 +116,13 @@ def asignar_usuario(id_tarjeta, id_usuario):
     if tarjeta is None or usuario is None:
         return False
     sesion.exigir_tarjeta(tarjeta)
+    proyecto_id = tarjeta.id_lista.id_tablero.id_proyecto_id
+    participa = ProyectoUsuario.select().where(
+        (ProyectoUsuario.id_proyecto == proyecto_id) &
+        (ProyectoUsuario.id_usuario == id_usuario)
+    ).exists()
+    if not participa:
+        raise ValueError("El usuario debe participar en el proyecto de la tarjeta.")
     if not sesion.es_jefe() and sesion.usuario_actual().id_usuario != id_usuario:
         raise PermissionError("Los trabajadores solo pueden asignarse a sí mismos.")
     return repo_tarjeta.asignar_usuario(tarjeta, usuario)

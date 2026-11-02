@@ -84,7 +84,10 @@ def agregar_tarjeta(id_lista, tarjeta):
     lista = repo_lista.obtener_lista(id_lista)
     if lista is None:
         raise ValueError("La lista destino no existe o no está activa.")
+    sesion.exigir_tarjeta(tarjeta)
     sesion.exigir_lista(lista)
+    if tarjeta.id_lista.id_tablero.id_proyecto_id != lista.id_tablero.id_proyecto_id:
+        raise ValueError("No se puede mover una tarjeta a otro proyecto.")
     tarjeta.id_lista = id_lista
     repo_tarjeta.actualizar_tarjeta(tarjeta)
     return tarjeta
